@@ -11,7 +11,6 @@ COLUMNS = {0: '№', 1: 'Отримувач', 2: 'Тема',
 
 class Window:
     def __init__(self):
-        print '------------------------------'
         self.gladefile = 'gui.glade'
         self.wTree = gtk.glade.XML(self.gladefile)
         self.window = self.wTree.get_widget('MainWindow')
@@ -21,12 +20,19 @@ class Window:
         self.wTree.signal_autoconnect(dic)
 
         self.tvLetters.set_model(model.TableModel())
-        for i in range(6):
+        for i in COLUMNS.keys():
             cell = gtk.CellRendererText()
+            cell.set_property('editable', True)
+            cell.set_data('column', i)
+            cell.connect('edited', self.on_cell_edited, model)
             self.tvLetters.append_column(
                 gtk.TreeViewColumn(COLUMNS[i], cell, text=i))
 
         self.window.show_all()
+
+    def on_cell_edited(self, cell, path, new_text, model):
+        column = cell.get_data('column')
+        self.tvLetters.get_model().set_data(path, column, new_text)
 
 
 if __name__ == '__main__':
