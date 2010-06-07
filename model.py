@@ -1,6 +1,7 @@
 import gtk;
 import MySQLdb;
 import gobject;
+from MySQLdb.constants import FIELD_TYPE
 
 
 class TableModel(gtk.GenericTreeModel):
@@ -15,15 +16,20 @@ class TableModel(gtk.GenericTreeModel):
     of depth 3 with 5 nodes at each level of the tree.  The values in
     the tree are just the string representations of the nodes.'''
 
-    COLUMN_NAMES = {0: 'id', 1: 'organization',
-           2: 'subject', 3: 'sent', 
-           4: 'received', 5: 'receipt'}
+    COLUMNS = {0: ('id', gobject.TYPE_INT), 
+               1: ('organization', gobject.TYPE_STRING),
+               2: ('subject', gobject.TYPE_STRING),
+               3: ('sent', gobject.TYPE_STRING),
+               4: ('received', gobject.TYPE_STRING),
+               5: ('receipt', gobject.TYPE_BOOLEAN)}
     def __init__(self):
         '''constructor for the model.  Make sure you call
         PyTreeModel.__init__'''
         gtk.GenericTreeModel.__init__(self)
+        my_conv = {FIELD_TYPE.LONG: int,
+                FIELD_TYPE.BIT: bool}
         self.cn = MySQLdb.connect(read_default_file='~/.mysql.cnf',
-                                  db='letters')
+                                  db='letters', conv=my_conv)
         self.update_data()
         
     def update_data(self):
@@ -33,10 +39,9 @@ class TableModel(gtk.GenericTreeModel):
                       ON letters.recipient_id = recipients.id''')
         self.data = self.cn.store_result()
         self.data = self.data.fetch_row(maxrows=0, how=1)
-        print self.data
 
     def set_data(self, path, col, data):
-        column_name = self.COLUMN_NAMES[col]
+        column_name = self.COLUMNS[col][0]
         path = int(path)
         old_data = self.get_value(self.get_iter(path), col)
         if old_data == data:
@@ -44,7 +49,6 @@ class TableModel(gtk.GenericTreeModel):
         id = self.data[path]['id']
         query = '''UPDATE letters SET %s = '%s' WHERE
                       id = %s;''' % (column_name, data, id)
-        print query
         self.cn.query('''UPDATE letters SET `%s` = '%s' WHERE
                       id = %s;''' % (column_name, data, id))
         self.update_data()
@@ -57,13 +61,13 @@ class TableModel(gtk.GenericTreeModel):
         return len(self.data[0])
 
     def on_get_column_type(self, index):
-        return gobject.TYPE_STRING
+        return self.COLUMNS[index][1]
 
     def on_get_iter(self, path):
         return path[0]
 
     def on_get_value(self, node, column):
-        return self.data[node][self.COLUMN_NAMES[column]]
+        return self.data[node][self.COLUMNS[column][0]]
 
     def on_iter_next(self, node):
         if node != None:
