@@ -38,6 +38,9 @@ class TableModel(gtk.GenericTreeModel):
     def set_data(self, path, col, data):
         column_name = self.COLUMN_NAMES[col]
         path = int(path)
+        old_data = self.get_value(self.get_iter(path), col)
+        if old_data == data:
+            return
         id = self.data[path]['id']
         query = '''UPDATE letters SET %s = '%s' WHERE
                       id = %s;''' % (column_name, data, id)
