@@ -2,6 +2,7 @@ import gtk;
 import MySQLdb;
 import gobject;
 
+
 class TableModel(gtk.GenericTreeModel):
     '''This class represents the model of a tree.  The iterators used
     to represent positions are converted to python objects when passed
@@ -14,8 +15,9 @@ class TableModel(gtk.GenericTreeModel):
     of depth 3 with 5 nodes at each level of the tree.  The values in
     the tree are just the string representations of the nodes.'''
 
-    TREE_DEPTH = 1
-    TREE_SIBLINGS = 9
+    COLUMN_NAMES = {0: 'id', 1: 'organization',
+           2: 'subject', 3: 'sent', 
+           4: 'received', 5: 'receipt'}
     def __init__(self):
         '''constructor for the model.  Make sure you call
         PyTreeModel.__init__'''
@@ -30,11 +32,23 @@ class TableModel(gtk.GenericTreeModel):
                       LEFT OUTER JOIN recipients
                       ON letters.recipient_id = recipients.id''')
         self.data = self.cn.store_result()
-        self.data = self.data.fetch_row(maxrows=0, how=0)
+        self.data = self.data.fetch_row(maxrows=0, how=1)
+        print self.data
+
+    def set_data(self, path, col, data):
+        column_name = self.COLUMN_NAMES[col]
+        path = int(path)
+        id = self.data[path]['id']
+        query = '''UPDATE letters SET %s = '%s' WHERE
+                      id = %s;''' % (column_name, data, id)
+        print query
+        self.cn.query('''UPDATE letters SET `%s` = '%s' WHERE
+                      id = %s;''' % (column_name, data, id))
+        self.update_data()
 
 
     def on_get_flags(self):
-        return 0
+        return gtk.TREE_MODEL_LIST_ONLY
 
     def on_get_n_columns(self):
         return len(self.data[0])
@@ -46,7 +60,7 @@ class TableModel(gtk.GenericTreeModel):
         return path[0]
 
     def on_get_value(self, node, column):
-        return self.data[node][column]
+        return self.data[node][self.COLUMN_NAMES[column]]
 
     def on_iter_next(self, node):
         if node != None:
