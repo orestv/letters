@@ -5,12 +5,18 @@ import gtk.glade
 pygtk.require('2.0')
 import model;
 
-COLUMNS = {0: ('№', False, gtk.CellRendererText, 'text'), 
-           1: ('Отримувач', False, gtk.CellRendererText, 'text'), 
-           2: ('Тема', True, gtk.CellRendererText, 'text'), 
-           3: ('Відіслано', True, gtk.CellRendererText, 'text'), 
-           4: ('Отримано', True, gtk.CellRendererText, 'text'), 
-           5: ('Квитанція', False, gtk.CellRendererToggle, 'active')}
+COLUMNS = {0: {'name':'№', 'editable':False, 
+               'renderer':gtk.CellRendererText, 'type':'text'}, 
+           1: {'name':'Отримувач', 'editable':False,  
+               'renderer':gtk.CellRendererText, 'type':'text'}, 
+           2: {'name':'Тема', 'editable':True,  
+               'renderer':gtk.CellRendererText, 'type':'text'}, 
+           3: {'name':'Відіслано', 'editable':True,  
+               'renderer':gtk.CellRendererText, 'type':'text'}, 
+           4: {'name':'Отримано', 'editable':True,  
+               'renderer':gtk.CellRendererText, 'type':'text'}, 
+           5: {'name':'Квитанція', 'editable':False,  
+               'renderer':gtk.CellRendererToggle, 'type':'active'}}
 
 class Window:
     def __init__(self):
@@ -25,13 +31,13 @@ class Window:
 
         self.tvLetters.set_model(model.TableModel())
         for i in COLUMNS.keys():
-            cell = COLUMNS[i][2]()
+            cell = COLUMNS[i]['renderer']()
             cell.set_data('column', i)
-            if COLUMNS[i][1]:
+            if COLUMNS[i]['editable']:
                 cell.connect('edited', self.on_cell_edited, model)
                 cell.set_property('editable', True)
-            column = gtk.TreeViewColumn(COLUMNS[i][0], cell)
-            column.add_attribute(cell, COLUMNS[i][3], i)
+            column = gtk.TreeViewColumn(COLUMNS[i]['name'], cell)
+            column.add_attribute(cell, COLUMNS[i]['type'], i)
             self.tvLetters.append_column(column)
 
         self.window.show_all()
