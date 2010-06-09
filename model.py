@@ -27,7 +27,7 @@ class TableModel(gtk.GenericTreeModel):
         PyTreeModel.__init__'''
         gtk.GenericTreeModel.__init__(self)
         my_conv = {FIELD_TYPE.LONG: int,
-                FIELD_TYPE.BIT: bool}
+                   FIELD_TYPE.BIT : lambda t : t == '\x01'}
         self.cn = MySQLdb.connect(read_default_file='~/.mysql.cnf',
                                   db='letters', conv=my_conv)
         self.update_data()
@@ -39,6 +39,7 @@ class TableModel(gtk.GenericTreeModel):
                       ON letters.recipient_id = recipients.id''')
         self.data = self.cn.store_result()
         self.data = self.data.fetch_row(maxrows=0, how=1)
+        print self.data
 
     def set_data(self, path, col, data):
         column_name = self.COLUMNS[col][0]
