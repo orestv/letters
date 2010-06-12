@@ -16,12 +16,12 @@ class TableModel(gtk.GenericTreeModel):
     of depth 3 with 5 nodes at each level of the tree.  The values in
     the tree are just the string representations of the nodes.'''
 
-    COLUMNS = {0: ('id', gobject.TYPE_INT), 
-               1: ('organization', gobject.TYPE_STRING),
-               2: ('subject', gobject.TYPE_STRING),
-               3: ('sent', gobject.TYPE_STRING),
-               4: ('received', gobject.TYPE_STRING),
-               5: ('receipt', gobject.TYPE_BOOLEAN)}
+    COLUMNS = {0: {'name':'id', 'type':gobject.TYPE_INT}, 
+               1: {'name':'organization', 'type':gobject.TYPE_STRING},
+               2: {'name':'subject', 'type':gobject.TYPE_STRING},
+               3: {'name':'sent', 'type':gobject.TYPE_STRING},
+               4: {'name':'received', 'type':gobject.TYPE_STRING},
+               5: {'name':'receipt', 'type':gobject.TYPE_BOOLEAN}}
     def __init__(self):
         '''constructor for the model.  Make sure you call
         PyTreeModel.__init__'''
@@ -42,7 +42,8 @@ class TableModel(gtk.GenericTreeModel):
         print self.data
 
     def set_data(self, path, col, data):
-        column_name = self.COLUMNS[col][0]
+        data = self.process_data(data, col)
+        column_name = self.COLUMNS[col]['name']
         path = int(path)
         old_data = self.get_value(self.get_iter(path), col)
         if old_data == data:
@@ -54,6 +55,15 @@ class TableModel(gtk.GenericTreeModel):
                       id = %s;''' % (column_name, data, id))
         self.update_data()
 
+    def process_data(self, data, column):
+        result = data
+        if self.COLUMNS[column]['type'] == gobject.TYPE_BOOLEAN:
+            if data:
+                result = '\x01'
+            else:
+                result = '\x00'
+        return result
+
 
     def on_get_flags(self):
         return gtk.TREE_MODEL_LIST_ONLY
@@ -62,13 +72,13 @@ class TableModel(gtk.GenericTreeModel):
         return len(self.data[0])
 
     def on_get_column_type(self, index):
-        return self.COLUMNS[index][1]
+        return self.COLUMNS[index]['type']
 
     def on_get_iter(self, path):
         return path[0]
 
     def on_get_value(self, node, column):
-        return self.data[node][self.COLUMNS[column][0]]
+        return self.data[node][self.COLUMNS[column]['name']]
 
     def on_iter_next(self, node):
         if node != None:
