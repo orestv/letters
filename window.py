@@ -20,8 +20,9 @@ def is_string(string):
 COLUMNS = {0: {'name':'№', 'editable':False,
                'renderer':gtk.CellRendererText, 'type':'text'}, 
 
-           1: {'name':'Отримувач', 'editable':False,  
-               'renderer':gtk.CellRendererText, 'type':'text'}, 
+           1: {'name':'Отримувач', 'editable':True,  
+               'renderer':gtk.CellRendererCombo, 'type':'text',
+               'validator':is_string}, 
 
            2: {'name':'Тема', 'editable':True,  'signal':'edited',
                'renderer':gtk.CellRendererText, 'type':'text',
@@ -50,6 +51,7 @@ class Window:
         self.wTree.signal_autoconnect(dic)
 
         self.tvLetters.set_model(model.TableModel())
+        combomodel = model.ComboModel()
         for i in COLUMNS.keys():
             col = COLUMNS[i]
             cell = col['renderer']()
@@ -61,6 +63,12 @@ class Window:
                 elif col['renderer'] == gtk.CellRendererText:
                     cell.set_property('editable', True)
                     cell.connect('edited', self.on_set_cell_text, i)
+                elif col['renderer'] == gtk.CellRendererCombo:
+                    cell.set_property('has-entry', False)
+                    cell.set_property('editable', True)
+                    cell.set_property('text-column', 1)
+                    cell.set_property('model', combomodel)
+                    cell.connect('edited', self.on_set_cell_text, i)
             column = gtk.TreeViewColumn(COLUMNS[i]['name'], cell)
             column.add_attribute(cell, COLUMNS[i]['type'], i)
             self.tvLetters.append_column(column)
@@ -68,6 +76,7 @@ class Window:
         self.window.show_all()
 
     def on_set_cell_text(self, cell, path, new_text, column):
+        print cell, path, new_text, column
         if COLUMNS[column]['validator'](new_text):
             self.set_data(path, column, new_text)
 
@@ -80,8 +89,5 @@ class Window:
 
 
 if __name__ == '__main__':
-    t = time.strptime('2010-06-15', '%Y-%m-%d')
-    print time.strftime('%d %b, %Y', t)
-
     Window()
     gtk.main()
