@@ -57,24 +57,22 @@ class Window:
             if col['editable']:
                 if col['renderer'] == gtk.CellRendererToggle:
                     cell.set_property('activatable', True)
-                    cell.connect('toggled', self.on_set_cell_toggle, model)
+                    cell.connect('toggled', self.on_set_cell_toggle, i)
                 elif col['renderer'] == gtk.CellRendererText:
                     cell.set_property('editable', True)
-                    cell.connect('edited', self.on_set_cell_text, model)
+                    cell.connect('edited', self.on_set_cell_text, i)
             column = gtk.TreeViewColumn(COLUMNS[i]['name'], cell)
             column.add_attribute(cell, COLUMNS[i]['type'], i)
             self.tvLetters.append_column(column)
 
         self.window.show_all()
 
-    def on_set_cell_text(self, cell, path, new_text, model=None):
-        column = cell.get_data('column')
+    def on_set_cell_text(self, cell, path, new_text, column):
         if COLUMNS[column]['validator'](new_text):
             self.set_data(path, column, new_text)
 
-    def on_set_cell_toggle(self, cell, new_text, model):
-        print cell, new_text, model
-        pass
+    def on_set_cell_toggle(self, cell, path, column):
+        self.set_data(path, column, not cell.get_active())
 
     def set_data(self, path, column, data):
         self.tvLetters.get_model().set_data(path, column, data)
