@@ -2,19 +2,39 @@ import os,sys;
 #coding: utf-8
 import gtk, pygtk;
 import gtk.glade
+import time;
 pygtk.require('2.0')
 import model;
 
+def is_date(string):
+    try:
+        time.strptime(string, '%Y-%m-%d')
+        return True
+    except ValueError:
+        return False
+
+def is_string(string):
+    return True
+
+
 COLUMNS = {0: {'name':'№', 'editable':False,
                'renderer':gtk.CellRendererText, 'type':'text'}, 
+
            1: {'name':'Отримувач', 'editable':False,  
                'renderer':gtk.CellRendererText, 'type':'text'}, 
+
            2: {'name':'Тема', 'editable':True,  'signal':'edited',
-               'renderer':gtk.CellRendererText, 'type':'text'}, 
+               'renderer':gtk.CellRendererText, 'type':'text',
+               'validator':is_string}, 
+
            3: {'name':'Відіслано', 'editable':True,  'signal':'edited',
-               'renderer':gtk.CellRendererText, 'type':'text'}, 
+               'renderer':gtk.CellRendererText, 'type':'text',
+               'validator':is_date}, 
+
            4: {'name':'Отримано', 'editable':True, 'signal':'edited',
-               'renderer':gtk.CellRendererText, 'type':'text'}, 
+               'renderer':gtk.CellRendererText, 'type':'text',
+               'validator':is_date}, 
+
            5: {'name':'Квитанція', 'editable':True,  'signal':'toggled',
                'renderer':gtk.CellRendererToggle, 'type':'active'}}
 
@@ -49,15 +69,21 @@ class Window:
 
     def on_set_cell_text(self, cell, path, new_text, model=None):
         column = cell.get_data('column')
-        self.set_data(path, column, new_text)
+        if COLUMNS[column]['validator'](new_text):
+            self.set_data(path, column, new_text)
 
     def on_set_cell_toggle(self, cell, new_text, model):
+        print cell, new_text, model
         pass
 
     def set_data(self, path, column, data):
         self.tvLetters.get_model().set_data(path, column, data)
 
 
+
 if __name__ == '__main__':
+    t = time.strptime('2010-06-15', '%Y-%m-%d')
+    print time.strftime('%d %b, %Y', t)
+
     Window()
     gtk.main()
