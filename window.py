@@ -66,9 +66,9 @@ class Window:
                 elif col['renderer'] == gtk.CellRendererCombo:
                     cell.set_property('has-entry', False)
                     cell.set_property('editable', True)
-                    cell.set_property('text-column', 1)
+                    cell.set_property('text-column', 0)
                     cell.set_property('model', combomodel)
-                    cell.connect('edited', self.on_set_cell_text, i)
+                    cell.connect('edited', self.on_set_cell_combo, i)
             column = gtk.TreeViewColumn(COLUMNS[i]['name'], cell)
             column.add_attribute(cell, COLUMNS[i]['type'], i)
             self.tvLetters.append_column(column)
@@ -79,6 +79,10 @@ class Window:
         print cell, path, new_text, column
         if COLUMNS[column]['validator'](new_text):
             self.set_data(path, column, new_text)
+
+    def on_set_cell_combo(self, combo, path, iter, column):
+        self.set_data(path, column, iter)
+
 
     def on_set_cell_toggle(self, cell, path, column):
         self.set_data(path, column, not cell.get_active())
