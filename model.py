@@ -121,7 +121,10 @@ class ComboModel(gtk.GenericTreeModel):
         return gtk.TREE_MODEL_LIST_ONLY
 
     def on_get_path(self, iter):
-        return str(iter[0]-1)
+        for i in range(len(self.data)):
+            if self.data[i] == iter:
+                return i
+        return None
 
     def on_get_n_columns(self):
         return len(self.data[0])
@@ -130,10 +133,10 @@ class ComboModel(gtk.GenericTreeModel):
         return gobject.TYPE_STRING
 
     def on_get_iter(self, path):
-        return path[0]
+        return self.data[int(path[0])]
 
     def on_get_value(self, node, column):
-        return self.data[node][column]
+        return node[column]
 
     def on_iter_next(self, node):
         result = None
