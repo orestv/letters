@@ -39,6 +39,7 @@ class Window:
             self.columns[n] = gtk.TreeViewColumn(column_names[n], cell)
 
             if column_renderers[n] == gtk.CellRendererText:
+                cell.set_property('editable', True)
                 type = 'text'
             elif column_renderers[n] == gtk.CellRendererToggle:
                 cell.set_property('activatable', True)

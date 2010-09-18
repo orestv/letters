@@ -2,8 +2,14 @@
 import gtk;
 import sqlite3 as sqlite;
 import gobject;
+import time;
 
 DATABASE_PATH = 'letters.db'
+TIME_FORMAT = '%d.%m.%Y %H:%M'
+
+def format_date_down(t):
+    return time.strftime(TIME_FORMAT, time.localtime(t))
+
 
 COLUMNS = {0: {'name':'id', 'type':gobject.TYPE_INT}, 
            1: {'name':'sender', 'type':gobject.TYPE_STRING},
@@ -23,7 +29,11 @@ class TableModel(gtk.GenericTreeModel):
                         gtk.CellRendererCombo, gtk.CellRendererText,
                         gtk.CellRendererText, gtk.CellRendererText,
                         gtk.CellRendererText, gtk.CellRendererToggle]
-    column_types = (int, str, int, str, str, str, str, int)
+    column_types = [int, str, int, str, str, str, str, int]
+    column_processors_down = [None, None, None, None, 
+                              None, format_date_down, format_date_down, None]
+    column_processors_up = [None, None, None, None, 
+                            None, None, None, None]
     def __init__(self):
         gtk.GenericTreeModel.__init__(self)
         self.conn = sqlite.connect(DATABASE_PATH)
@@ -79,8 +89,12 @@ class TableModel(gtk.GenericTreeModel):
 
     def on_get_value(self, rowref, nCol):
         #print 'RowRef: ', rowref, ', nCol: ', nCol
+        proc = self.column_processors_down[nCol]
         if rowref < len(self.data):
-            return self.data[rowref][nCol]
+            value = self.data[rowref][nCol]
+            if proc:
+                value = proc(value)
+            return value
         else:
             return None
 
