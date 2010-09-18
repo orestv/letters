@@ -1,8 +1,10 @@
 import gtk;
 import MySQLdb;
+import sqlite3 as sqlite;
 import gobject;
 from MySQLdb.constants import FIELD_TYPE
 
+DATABASE_PATH = 'letters.db'
 
 class TableModel(gtk.GenericTreeModel):
     '''This class represents the model of a tree.  The iterators used
@@ -30,8 +32,9 @@ class TableModel(gtk.GenericTreeModel):
                    FIELD_TYPE.BIT : lambda t : t == '\x01'}
         self.cn = MySQLdb.connect(read_default_file='~/.mysql.cnf',
                                   db='letters', conv=my_conv)
+
         self.update_data()
-        
+
     def update_data(self):
         self.cn.query('''SELECT letters.id, recipient_id, subject, 
                       sent, received, receipt FROM letters''')
@@ -166,8 +169,24 @@ class ComboModel(gtk.GenericTreeModel):
     def on_iter_parent(self, node):
         return None
 
+def is_db_intact(conn):
+    cursor = conn.cursor()
+    try:
+        cursor.execute('SELECT TOP 1 * FROM letters')
+    except sqlite.OperationalError:
+        return False
+    return True
 
 
-
-
+def generate_db_structure(conn):
+    print 'Generating structure!'
+    cursor = conn.cursor()
+    cursor.execute('''CREATE TABLE LETTERS (id INTEGER PRIMARY_KEY,
+                   sender_id INTEGER, recipient_id INTEGER, 
+                   subject TEXT, sent INTEGER,
+                   received INTEGER, receipt INTEGER''')
+    cursor.execute('''CREATE TABLE recipients (id INTEGER PRIMARY_KEY,
+                   name TEXT, address TEXT, organization TEXT''')
+    cursor.execute('''CREATE TABLE senders (id INTEGER PRIMARY_KEY,
+                   name TEXT''')
 

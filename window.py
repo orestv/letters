@@ -4,7 +4,8 @@ import gtk, pygtk;
 import gtk.glade
 import time;
 pygtk.require('2.0')
-import model;
+import model2 as model
+import gobject;
 
 def is_date(string):
     try:
@@ -17,28 +18,6 @@ def is_string(string):
     return True
 
 
-COLUMNS = {0: {'name':'№', 'editable':False,
-               'renderer':gtk.CellRendererText, 'type':'text'}, 
-
-           1: {'name':'Отримувач', 'editable':True,  
-               'renderer':gtk.CellRendererCombo, 'type':'text',
-               'validator':is_string}, 
-
-           2: {'name':'Тема', 'editable':True,  'signal':'edited',
-               'renderer':gtk.CellRendererText, 'type':'text',
-               'validator':is_string}, 
-
-           3: {'name':'Відіслано', 'editable':True,  'signal':'edited',
-               'renderer':gtk.CellRendererText, 'type':'text',
-               'validator':is_date}, 
-
-           4: {'name':'Отримано', 'editable':True, 'signal':'edited',
-               'renderer':gtk.CellRendererText, 'type':'text',
-               'validator':is_date}, 
-
-           5: {'name':'Квитанція', 'editable':True,  'signal':'toggled',
-               'renderer':gtk.CellRendererToggle, 'type':'active'}}
-
 class Window:
     def __init__(self):
         print '------------------------'
@@ -49,29 +28,28 @@ class Window:
 
         dic = {'on_MainWindow_destroy' : gtk.main_quit}
         self.wTree.signal_autoconnect(dic)
+        m = model.TableModel()
 
-        self.tvLetters.set_model(model.TableModel())
-        combomodel = model.ComboModel()
-        for i in COLUMNS.keys():
-            col = COLUMNS[i]
-            cell = col['renderer']()
-            cell.set_data('column', i)
-            if col['editable']:
-                if col['renderer'] == gtk.CellRendererToggle:
-                    cell.set_property('activatable', True)
-                    cell.connect('toggled', self.on_set_cell_toggle, i)
-                elif col['renderer'] == gtk.CellRendererText:
-                    cell.set_property('editable', True)
-                    cell.connect('edited', self.on_set_cell_text, i)
-                elif col['renderer'] == gtk.CellRendererCombo:
-                    cell.set_property('has-entry', False)
-                    cell.set_property('editable', True)
-                    cell.set_property('text-column', 0)
-                    cell.set_property('model', combomodel)
-                    cell.connect('edited', self.on_set_cell_combo, i)
-            column = gtk.TreeViewColumn(COLUMNS[i]['name'], cell)
-            column.add_attribute(cell, COLUMNS[i]['type'], i)
-            self.tvLetters.append_column(column)
+        column_names = m.get_column_names()
+        column_renderers = m.get_column_renderers()
+        self.columns = [None] * len(column_names)
+
+        for n in range(len(column_names)):
+            cell = column_renderers[n]()
+            self.columns[n] = gtk.TreeViewColumn(column_names[n], cell)
+
+            if column_renderers[n] == gtk.CellRendererText:
+                type = 'text'
+            elif column_renderers[n] == gtk.CellRendererToggle:
+                cell.set_property('activatable', True)
+                cell.connect('toggled', self.on_set_cell_toggle, n)
+                type = 'active'
+            self.columns[n].add_attribute(cell, type, n)
+
+            self.tvLetters.append_column(self.columns[n])
+
+        self.tvLetters.set_model(m)
+
 
         self.window.show_all()
 
