@@ -25,30 +25,22 @@ def format_bool_down(b):
     return (b == 1)
 
 
-COLUMNS = {0: {'name':'id', 'type':gobject.TYPE_INT}, 
-           1: {'name':'sender', 'type':gobject.TYPE_STRING},
-           2: {'name':'recipient', 'type':gobject.TYPE_STRING},
-           3: {'name':'subject', 'type':gobject.TYPE_STRING},
-           4: {'name':'sent', 'type':gobject.TYPE_STRING},
-           5: {'name':'received', 'type':gobject.TYPE_STRING},
-           6: {'name':'receipt', 'type':gobject.TYPE_BOOLEAN}}
-
-
 class TableModel(gtk.GenericTreeModel):
     column_names = ['id', '№', 'Відправник', 'Отримувач', 
-                    'Тема', 'Відіслано', 'Отримано', 'Квитанція']
+                    'Тема', 'Коментар', 'Відіслано', 'Отримано', 'Квитанція']
     column_names_sql = ['id', 'number', 'sender_id', 'recipient', 
-                        'subject', 'sent', 'received', 'receipt']
+                        'subject', 'comment', 'sent', 'received', 'receipt']
     column_renderers = [gtk.CellRendererText, gtk.CellRendererText,
-                        gtk.CellRendererCombo, gtk.CellRendererText,
-                        gtk.CellRendererText, cr_date.CellRendererDate,
+                        gtk.CellRendererText, gtk.CellRendererText,
+                        gtk.CellRendererText, gtk.CellRendererText,
+                        cr_date.CellRendererDate,
                         cr_date.CellRendererDate, gtk.CellRendererToggle]
-    column_types = [int, str, str, str, str, str, str, int]
+    column_types = [int, str, str, str, str, str, str, str, int]
     column_processors_down = [None, None, None, None, 
-                              None, format_date_down, format_date_down, 
+                              None, None, format_date_down, format_date_down, 
                              format_bool_down]
     column_processors_up = [None, None, None, None, 
-                            None, format_date_up, format_date_up, 
+                            None, None, format_date_up, format_date_up, 
                            format_bool_up]
     def __init__(self):
         gtk.GenericTreeModel.__init__(self)
@@ -59,11 +51,9 @@ class TableModel(gtk.GenericTreeModel):
 
     def download_data(self):
         cursor = self.conn.cursor()
-        cursor.execute('''SELECT letters.id AS letter_id, number, senders.name,
-                       recipient, subject, sent,
-                       received, receipt FROM letters
-                       LEFT OUTER JOIN senders ON letters.sender_id = 
-                       senders.id''')
+        cursor.execute('''SELECT id, number, sender,
+                       recipient, subject, comment, sent,
+                       received, receipt FROM letters''')
         self.data = cursor.fetchall()
         for n in range(len(self.data)):
             self.data[n] = list(self.data[n])
@@ -99,10 +89,16 @@ class TableModel(gtk.GenericTreeModel):
         return gtk.TREE_MODEL_LIST_ONLY|gtk.TREE_MODEL_ITERS_PERSIST
 
     def on_get_iter(self, path):
-        return path[0]
+        if self.data:
+            return path[0]
+        else:
+            return None
 
     def on_get_path(self, iter):
-        return data[iter][0]
+        if self.data:
+            return data[iter][0]
+        else:
+            return None
 
     def on_get_value(self, rowref, nCol):
         #print 'RowRef: ', rowref, ', nCol: ', nCol
@@ -122,14 +118,16 @@ class TableModel(gtk.GenericTreeModel):
             return None
 
     def on_iter_has_child(self, iter):
-        print 'children?'
         return False
 
     def on_iter_children(self, iter):
         if iter:
             return None
         else:
-            return self.data[0]
+            if self.data:
+                return self.data[0]
+            else:
+                return None
 
     def on_iter_nth_child(self, iter, n):
         if iter:
@@ -153,19 +151,11 @@ def generate_db_structure(conn):
     cursor = conn.cursor()
     cursor.execute('''CREATE TABLE letters 
                    (id INTEGER PRIMARY KEY,
-                   number TEXT, sender_id INTEGER, recipient TEXT, 
-                   subject TEXT, sent INTEGER,
+                   number TEXT, sender TEXT, recipient TEXT, 
+                   subject TEXT, comment TEXT, sent INTEGER,
                    received INTEGER, receipt INTEGER)''')
-    cursor.execute('''CREATE TABLE senders 
-                   (id INTEGER PRIMARY KEY,
-                   name TEXT)''')
-    cursor.execute('''INSERT INTO senders (name) VALUES ('Сирова Таня');''')
-    cursor.execute('''INSERT INTO senders (name) VALUES ('Ващук Оксана');''')
-    cursor.execute('''INSERT INTO letters (id, number, sender_id, recipient,
-                   subject, sent, received, receipt)
-                   VALUES(NULL, '5/10', 1, 'Seth', 'asdf', 555, 999, 0)''')
-    cursor.execute('''INSERT INTO letters (id, number, sender_id, recipient,
-                   subject, sent, received, receipt)
-                   VALUES(NULL, '5/10', 2, 'Seth', 'asdf', 555, 999, 0)''')
+    #cursor.execute('''INSERT INTO letters (id, number, sender, recipient,
+    #               subject, sent, received, receipt)
+    #               VALUES(NULL, '5/10', 'Smile', 'Seth', 'asdf', 999, 999, 0)''')
     conn.commit()
 
