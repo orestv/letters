@@ -4,6 +4,7 @@ import sqlite3 as sqlite;
 import gobject;
 import time, calendar
 import cr_date;
+import re;
 
 DATABASE_PATH = 'letters.db'
 def format_date_down(t):
@@ -72,6 +73,35 @@ class TableModel(gtk.GenericTreeModel):
                        '= ? WHERE id = ?', (unicode(value), self.data[row][0]))
         self.conn.commit()
         cursor.close()
+
+    def add_row(self, number, subject, sender, recipient,
+                sent, received, comment, receipt):
+        cursor = self.conn.cursor()
+        cursor.execute('''INSERT INTO letters (number, sender, recipient,
+                       subject, comment, sent, received, receipt)
+                       VALUES(?, ?, ?, ?, ?, ?, ?, ?);''', 
+                       unicode(number), unicode(sender), unicode(recipient),
+                       unicode(subject), unicode(comment),
+                       format_date_up(sent), format_date_up(received),
+                       format_bool_up(receipt))
+        self.conn.commit()
+        cursor.close()
+
+    def get_new_number(self):
+        cursor = self.conn.cursor()        
+        cursor.execute('''SELECT number FROM letters WHERE strftime('%Y', 'now') =
+                       strftime('%Y', sent);''')
+        nums = cursor.fetchall()
+        cursor.close()
+        strYear = time.strftime('%y', time.localtime())
+        if nums:
+            r = re.compile('[0-9]*')
+            nMax =  max([int(r.match(n).group(0)) for n in nums])
+            nNew = nMax + 1
+        else:
+            nNew = 1
+        return str(nNew) + '/' + strYear
+
 
     def get_column_names(self):
         return self.column_names

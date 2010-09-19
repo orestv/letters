@@ -89,8 +89,35 @@ class Window:
         self.tvLetters.get_model().set_data(path, column, data)
 
     def btnNew_clicked(self, event):
-        print 'abada'
+        self.new_row_popup()
 
+    def new_row_popup(self):
+        model = self.tvLetters.get_model()
+
+        popup = self.wTree.get_widget('dlgNewLetter')
+
+        eNumber = self.wTree.get_widget('eNumber')
+        eSubject = self.wTree.get_widget('eSubject')
+        eSender = self.wTree.get_widget('eSender')
+        eRecipient = self.wTree.get_widget('eRecipient')
+        calSent = self.wTree.get_widget('calSent')
+        calReceived = self.wTree.get_widget('calReceived')
+        chkReceived = self.wTree.get_widget('chkReceived')
+        eComment = self.wTree.get_widget('eComment')
+        chkReceipt = self.wTree.get_widget('chkReceipt')
+
+        def chkReceived_toggle(event):
+            calReceived.set_sensitive(chkReceived.get_active())
+
+        chkReceived.connect('toggled', chkReceived_toggle)
+
+        strNum = model.get_new_number()
+        eNumber.set_text(strNum)
+
+        response = popup.run()
+        if response == gtk.RESPONSE_OK:
+            print 'OK!'
+        popup.hide()
 
 
 if __name__ == '__main__':
