@@ -8,10 +8,21 @@ import cr_date;
 DATABASE_PATH = 'letters.db'
 def format_date_down(t):
     t = int(t)
+    if t == 999:
+        return ''
     return time.strftime(cr_date.DATE_FORMAT, time.localtime(t))
 
 def format_date_up(s):
     return time.mktime(time.strptime(s, cr_date.DATE_FORMAT))
+
+def format_bool_up(b):
+    if b:
+        return 1
+    else:
+        return 0
+
+def format_bool_down(b):
+    return (b == 1)
 
 
 COLUMNS = {0: {'name':'id', 'type':gobject.TYPE_INT}, 
@@ -32,11 +43,13 @@ class TableModel(gtk.GenericTreeModel):
                         gtk.CellRendererCombo, gtk.CellRendererText,
                         gtk.CellRendererText, cr_date.CellRendererDate,
                         cr_date.CellRendererDate, gtk.CellRendererToggle]
-    column_types = [int, str, int, str, str, str, str, int]
+    column_types = [int, str, str, str, str, str, str, int]
     column_processors_down = [None, None, None, None, 
-                              None, format_date_down, format_date_down, None]
+                              None, format_date_down, format_date_down, 
+                             format_bool_down]
     column_processors_up = [None, None, None, None, 
-                            None, format_date_up, format_date_up, None]
+                            None, format_date_up, format_date_up, 
+                           format_bool_up]
     def __init__(self):
         gtk.GenericTreeModel.__init__(self)
         self.conn = sqlite.connect(DATABASE_PATH)
@@ -46,7 +59,7 @@ class TableModel(gtk.GenericTreeModel):
 
     def download_data(self):
         cursor = self.conn.cursor()
-        cursor.execute('''SELECT letters.id AS letter_id, number, senders.id,
+        cursor.execute('''SELECT letters.id AS letter_id, number, senders.name,
                        recipient, subject, sent,
                        received, receipt FROM letters
                        LEFT OUTER JOIN senders ON letters.sender_id = 

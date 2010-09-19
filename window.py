@@ -33,8 +33,6 @@ class Window:
         for row in senders:
             lsSenders.append(row)
 
-        print lsSenders
-
         dic = {'on_MainWindow_destroy' : gtk.main_quit}
         self.wTree.signal_autoconnect(dic)
         m = model.TableModel()
@@ -62,26 +60,24 @@ class Window:
             elif column_renderers[n] == gtk.CellRendererCombo:
                 cell.set_property('editable', True)
                 cell.connect('edited', self.on_set_cell_combo, n)
-                
+                cell.set_property('model', lsSenders)
+                cell.set_property('text-column', 1)
 
             self.columns[n].add_attribute(cell, type, n)
 
             self.tvLetters.append_column(self.columns[n])
 
         self.tvLetters.set_model(m)
-
-
         self.window.show_all()
 
     def on_set_cell_date(self, cell, path, new_text, column):
-        print 'new text = ', new_text
         self.set_data(path, column, new_text)
 
     def on_set_cell_text(self, cell, path, new_text, column):
         self.set_data(path, column, new_text)
 
     def on_set_cell_combo(self, combo, path, iter, column):
-        print combo.model
+        model = combo.get_property('model')
         self.set_data(path, column, iter)
 
 
