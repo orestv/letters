@@ -2,13 +2,16 @@
 import gtk;
 import sqlite3 as sqlite;
 import gobject;
-import time;
+import time, calendar
+import cr_date;
 
 DATABASE_PATH = 'letters.db'
-TIME_FORMAT = '%d.%m.%Y %H:%M'
-
 def format_date_down(t):
-    return time.strftime(TIME_FORMAT, time.localtime(t))
+    t = int(t)
+    return time.strftime(cr_date.DATE_FORMAT, time.localtime(t))
+
+def format_date_up(s):
+    return time.mktime(time.strptime(s, cr_date.DATE_FORMAT))
 
 
 COLUMNS = {0: {'name':'id', 'type':gobject.TYPE_INT}, 
@@ -27,13 +30,13 @@ class TableModel(gtk.GenericTreeModel):
                         'subject', 'sent', 'received', 'receipt']
     column_renderers = [gtk.CellRendererText, gtk.CellRendererText,
                         gtk.CellRendererCombo, gtk.CellRendererText,
-                        gtk.CellRendererText, gtk.CellRendererText,
-                        gtk.CellRendererText, gtk.CellRendererToggle]
+                        gtk.CellRendererText, cr_date.CellRendererDate,
+                        cr_date.CellRendererDate, gtk.CellRendererToggle]
     column_types = [int, str, int, str, str, str, str, int]
     column_processors_down = [None, None, None, None, 
                               None, format_date_down, format_date_down, None]
     column_processors_up = [None, None, None, None, 
-                            None, None, None, None]
+                            None, format_date_up, format_date_up, None]
     def __init__(self):
         gtk.GenericTreeModel.__init__(self)
         self.conn = sqlite.connect(DATABASE_PATH)
@@ -56,7 +59,11 @@ class TableModel(gtk.GenericTreeModel):
         cursor.close()
 
     def set_data(self, row, col, value):
+        print value
         row, col = int(row), int(col)
+        proc = self.column_processors_up[col]
+        if proc:
+            value = proc(value)
         self.data[row][col] = value
 
         cursor = self.conn.cursor()

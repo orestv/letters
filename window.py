@@ -6,6 +6,8 @@ import time;
 pygtk.require('2.0')
 import model2 as model
 import gobject;
+import cr_date;
+gobject.type_register(cr_date.CellRendererDate)
 
 def is_date(string):
     try:
@@ -40,6 +42,11 @@ class Window:
 
             if column_renderers[n] == gtk.CellRendererText:
                 cell.set_property('editable', True)
+                cell.connect('edited', self.on_set_cell_text, n)
+                type = 'text'
+            elif column_renderers[n] == cr_date.CellRendererDate:
+                cell.set_property('editable', True)
+                cell.connect('edited', self.on_set_cell_date, n)
                 type = 'text'
             elif column_renderers[n] == gtk.CellRendererToggle:
                 cell.set_property('activatable', True)
@@ -54,10 +61,12 @@ class Window:
 
         self.window.show_all()
 
+    def on_set_cell_date(self, cell, path, new_text, column):
+        print 'new text = ', new_text
+        self.set_data(path, column, new_text)
+
     def on_set_cell_text(self, cell, path, new_text, column):
-        print cell, path, new_text, column
-        if COLUMNS[column]['validator'](new_text):
-            self.set_data(path, column, new_text)
+        self.set_data(path, column, new_text)
 
     def on_set_cell_combo(self, combo, path, iter, column):
         self.set_data(path, column, iter)
