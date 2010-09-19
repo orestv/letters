@@ -28,6 +28,13 @@ class Window:
         self.window = self.wTree.get_widget('MainWindow')
         self.tvLetters = self.wTree.get_widget('tvLetters')
 
+        lsSenders = gtk.ListStore(int, str)
+        senders = [(1, 'me'), (2, 'her')]
+        for row in senders:
+            lsSenders.append(row)
+
+        print lsSenders
+
         dic = {'on_MainWindow_destroy' : gtk.main_quit}
         self.wTree.signal_autoconnect(dic)
         m = model.TableModel()
@@ -52,6 +59,11 @@ class Window:
                 cell.set_property('activatable', True)
                 cell.connect('toggled', self.on_set_cell_toggle, n)
                 type = 'active'
+            elif column_renderers[n] == gtk.CellRendererCombo:
+                cell.set_property('editable', True)
+                cell.connect('edited', self.on_set_cell_combo, n)
+                
+
             self.columns[n].add_attribute(cell, type, n)
 
             self.tvLetters.append_column(self.columns[n])
@@ -69,6 +81,7 @@ class Window:
         self.set_data(path, column, new_text)
 
     def on_set_cell_combo(self, combo, path, iter, column):
+        print combo.model
         self.set_data(path, column, iter)
 
 
