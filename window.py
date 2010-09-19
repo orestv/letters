@@ -33,7 +33,8 @@ class Window:
         for row in senders:
             lsSenders.append(row)
 
-        dic = {'on_MainWindow_destroy' : gtk.main_quit}
+        dic = {'on_MainWindow_destroy' : gtk.main_quit,
+               'btnNew_clicked' : self.btnNew_clicked}
         self.wTree.signal_autoconnect(dic)
         m = model.TableModel()
 
@@ -86,6 +87,9 @@ class Window:
 
     def set_data(self, path, column, data):
         self.tvLetters.get_model().set_data(path, column, data)
+
+    def btnNew_clicked(self, event):
+        print 'abada'
 
 
 
