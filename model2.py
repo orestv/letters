@@ -43,9 +43,6 @@ class TableModel(gtk.GenericTreeModel):
         if not is_db_intact(self.conn):
             generate_db_structure(self.conn)
         self.download_data()
-        for n in range(len(self.data)):
-            self.data[n] = list(self.data[n])
-
 
     def download_data(self):
         cursor = self.conn.cursor()
@@ -55,7 +52,8 @@ class TableModel(gtk.GenericTreeModel):
                        LEFT OUTER JOIN senders ON letters.sender_id = 
                        senders.id''')
         self.data = cursor.fetchall()
-        print self.data
+        for n in range(len(self.data)):
+            self.data[n] = list(self.data[n])
         cursor.close()
 
     def set_data(self, row, col, value):
@@ -68,10 +66,9 @@ class TableModel(gtk.GenericTreeModel):
 
         cursor = self.conn.cursor()
         cursor.execute('UPDATE letters SET ' + self.column_names_sql[col] +
-                       '= ? WHERE id = ?', (value, self.data[row][0]))
+                       '= ? WHERE id = ?', (unicode(value), self.data[row][0]))
         self.conn.commit()
         cursor.close()
-
 
     def get_column_names(self):
         return self.column_names
