@@ -91,7 +91,6 @@ class TableModel(gtk.GenericTreeModel):
                        format_bool_up(receipt)))
         self.conn.commit()
         cursor.close()
-        self.download_data()
 
     def get_new_number(self):
         cursor = self.conn.cursor()        
