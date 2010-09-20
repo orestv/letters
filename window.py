@@ -7,6 +7,7 @@ pygtk.require('2.0')
 import model2 as model
 import gobject;
 import cr_date;
+import datetime;
 gobject.type_register(cr_date.CellRendererDate)
 
 def is_date(string):
@@ -105,19 +106,54 @@ class Window:
         chkReceived = self.wTree.get_widget('chkReceived')
         eComment = self.wTree.get_widget('eComment')
         chkReceipt = self.wTree.get_widget('chkReceipt')
-
-        def chkReceived_toggle(event):
+        
+        def chkReceived_toggled(event):
             calReceived.set_sensitive(chkReceived.get_active())
 
-        chkReceived.connect('toggled', chkReceived_toggle)
+        def btnAdd_clicked(event):
+            popup.response(gtk.RESPONSE_OK)
+            return True
+
+        def btnCancel_clicked(event):
+            popup.response(gtk.RESPONSE_CANCEL)
+            return True
+
+        dict = {'btnAdd_clicked' : btnAdd_clicked,
+                'btnCancel_clicked' : btnCancel_clicked,
+                'chkReceived_toggled' : chkReceived_toggled}
+
+        self.wTree.signal_autoconnect(dict)
 
         strNum = model.get_new_number()
         eNumber.set_text(strNum)
 
         response = popup.run()
         if response == gtk.RESPONSE_OK:
+            sNumber = eNumber.get_text()
+            sSubject = eSubject.get_text()
+            sSender = eSender.get_text()
+            sRecipient = eRecipient.get_text()
+            dtSent = date_from_cal(calSent.get_date())
+
+            if chkReceived.get_active():
+                dtReceived = date_from_cal(calReceived.get_date())
+            else:
+                dtReceived = None
+            sComment = eComment.get_text()
+            bReceipt = chkReceipt.get_active()
+            model.add_letter(sNumber, sSubject, sSender, sRecipient,
+                             dtSent, dtReceived, sComment, bReceipt)
             print 'OK!'
+        elif response == gtk.RESPONSE_CANCEL:
+            print 'Cancel!'
         popup.hide()
+
+
+def date_from_cal(date):
+    (year, month, day) = date
+    result = datetime.date(year, month+1, day)
+    result = result.strftime(cr_date.DATE_FORMAT)
+    return result
 
 
 if __name__ == '__main__':

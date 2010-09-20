@@ -8,12 +8,16 @@ import re;
 
 DATABASE_PATH = 'letters.db'
 def format_date_down(t):
+    if not t:
+        return ''
     t = int(t)
     if t == 999:
         return ''
     return time.strftime(cr_date.DATE_FORMAT, time.localtime(t))
 
 def format_date_up(s):
+    if not s:
+        return None
     return time.mktime(time.strptime(s, cr_date.DATE_FORMAT))
 
 def format_bool_up(b):
@@ -29,7 +33,7 @@ def format_bool_down(b):
 class TableModel(gtk.GenericTreeModel):
     column_names = ['id', '№', 'Відправник', 'Отримувач', 
                     'Тема', 'Коментар', 'Відіслано', 'Отримано', 'Квитанція']
-    column_names_sql = ['id', 'number', 'sender_id', 'recipient', 
+    column_names_sql = ['id', 'number', 'sender', 'recipient', 
                         'subject', 'comment', 'sent', 'received', 'receipt']
     column_renderers = [gtk.CellRendererText, gtk.CellRendererText,
                         gtk.CellRendererText, gtk.CellRendererText,
@@ -74,24 +78,28 @@ class TableModel(gtk.GenericTreeModel):
         self.conn.commit()
         cursor.close()
 
-    def add_row(self, number, subject, sender, recipient,
+    def add_letter(self, number, subject, sender, recipient,
                 sent, received, comment, receipt):
+        print received
         cursor = self.conn.cursor()
         cursor.execute('''INSERT INTO letters (number, sender, recipient,
                        subject, comment, sent, received, receipt)
                        VALUES(?, ?, ?, ?, ?, ?, ?, ?);''', 
-                       unicode(number), unicode(sender), unicode(recipient),
+                       (unicode(number), unicode(sender), unicode(recipient),
                        unicode(subject), unicode(comment),
                        format_date_up(sent), format_date_up(received),
-                       format_bool_up(receipt))
+                       format_bool_up(receipt)))
         self.conn.commit()
         cursor.close()
+        self.download_data()
 
     def get_new_number(self):
         cursor = self.conn.cursor()        
-        cursor.execute('''SELECT number FROM letters WHERE strftime('%Y', 'now') =
-                       strftime('%Y', sent);''')
+        cursor.execute('''SELECT number FROM letters WHERE strftime('%Y', 'now')
+                       = strftime('%Y', datetime(sent, 'unixepoch'));''')
         nums = cursor.fetchall()
+        nums = [n[0] for n in nums]
+        print nums
         cursor.close()
         strYear = time.strftime('%y', time.localtime())
         if nums:
@@ -166,7 +174,6 @@ class TableModel(gtk.GenericTreeModel):
             return self.data[n]
         except IndexError:
             return None
-
 
 def is_db_intact(conn):
     cursor = conn.cursor()
