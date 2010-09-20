@@ -277,10 +277,31 @@
             <property name="visible">True</property>
             <property name="layout_style">end</property>
             <child>
-              <placeholder/>
+              <widget class="GtkButton" id="btnAdd">
+                <property name="label" translatable="yes">&#x414;&#x43E;&#x434;&#x430;&#x442;&#x438;</property>
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="has_default">True</property>
+                <property name="receives_default">True</property>
+              </widget>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">False</property>
+                <property name="position">0</property>
+              </packing>
             </child>
             <child>
-              <placeholder/>
+              <widget class="GtkButton" id="btnCancel">
+                <property name="label" translatable="yes">&#x421;&#x43A;&#x430;&#x441;&#x443;&#x432;&#x430;&#x442;&#x438;</property>
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+              </widget>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">False</property>
+                <property name="position">1</property>
+              </packing>
             </child>
           </widget>
           <packing>

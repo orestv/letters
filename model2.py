@@ -177,13 +177,12 @@ def is_db_intact(conn):
     return True
 
 def generate_db_structure(conn):
-    print 'Generating structure!'
     cursor = conn.cursor()
     cursor.execute('''CREATE TABLE letters 
                    (id INTEGER PRIMARY KEY,
                    number TEXT, sender TEXT, recipient TEXT, 
-                   subject TEXT, comment TEXT, sent INTEGER,
-                   received INTEGER, receipt INTEGER)''')
+                   subject TEXT, comment TEXT, sent DATE,
+                   received DATE, receipt INTEGER)''')
     #cursor.execute('''INSERT INTO letters (id, number, sender, recipient,
     #               subject, sent, received, receipt)
     #               VALUES(NULL, '5/10', 'Smile', 'Seth', 'asdf', 999, 999, 0)''')
