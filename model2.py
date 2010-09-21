@@ -63,9 +63,10 @@ class TableModel(gtk.GenericTreeModel):
         for n in range(len(self.data)):
             self.data[n] = list(self.data[n])
         cursor.close()
+        #self.data.sort(lambda x, y : cmp(x[1], y[1]))
+
 
     def set_data(self, row, col, value):
-        print value
         row, col = int(row), int(col)
         proc = self.column_processors_up[col]
         if proc:
@@ -91,6 +92,25 @@ class TableModel(gtk.GenericTreeModel):
                        format_bool_up(receipt)))
         self.conn.commit()
         cursor.close()
+        self.download_data()
+        nRow = len(self.data)-1
+        path = (nRow,)
+        iter = self.get_iter(path)
+        self.row_inserted(path, iter)
+
+    def del_letter(self, iter):
+        if not iter:
+            return
+        id = int(self.get_value(iter, 0))
+        cursor = self.conn.cursor()
+        cursor.execute('''DELETE FROM letters WHERE id = ?''', (id,))
+        self.conn.commit()
+        cursor.close()
+        self.download_data()
+        for n in range(len(self.data)):
+            if self.data[n][0] == id:
+                break
+        self.row_deleted((n,))
 
     def get_new_number(self):
         cursor = self.conn.cursor()        
@@ -98,7 +118,6 @@ class TableModel(gtk.GenericTreeModel):
                        = strftime('%Y', datetime(sent, 'unixepoch'));''')
         nums = cursor.fetchall()
         nums = [n[0] for n in nums]
-        print nums
         cursor.close()
         strYear = time.strftime('%y', time.localtime())
         if nums:
@@ -131,14 +150,7 @@ class TableModel(gtk.GenericTreeModel):
         else:
             return None
 
-    def on_get_path(self, iter):
-        if self.data:
-            return data[iter][0]
-        else:
-            return None
-
     def on_get_value(self, rowref, nCol):
-        #print 'RowRef: ', rowref, ', nCol: ', nCol
         proc = self.column_processors_down[nCol]
         if rowref < len(self.data):
             value = self.data[rowref][nCol]

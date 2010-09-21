@@ -35,7 +35,8 @@ class Window:
             lsSenders.append(row)
 
         dic = {'on_MainWindow_destroy' : gtk.main_quit,
-               'btnNew_clicked' : self.btnNew_clicked}
+               'btnNew_clicked' : self.btnNew_clicked,
+               'btnRemove_clicked' : self.btnRemove_clicked}
         self.wTree.signal_autoconnect(dic)
         m = model.TableModel()
 
@@ -92,6 +93,11 @@ class Window:
     def btnNew_clicked(self, event):
         self.new_row_popup()
 
+    def btnRemove_clicked(self, event):
+        model, iter = self.tvLetters.get_selection().get_selected()
+        if iter:
+            model.del_letter(iter)
+
     def new_row_popup(self):
         model = self.tvLetters.get_model()
 
@@ -106,6 +112,10 @@ class Window:
         chkReceived = self.wTree.get_widget('chkReceived')
         eComment = self.wTree.get_widget('eComment')
         chkReceipt = self.wTree.get_widget('chkReceipt')
+
+        btnAdd = self.wTree.get_widget('btnAdd')
+        #popup.set_default(btnAdd)
+        btnAdd.grab_default()
         
         def chkReceived_toggled(event):
             calReceived.set_sensitive(chkReceived.get_active())
@@ -143,9 +153,6 @@ class Window:
             bReceipt = chkReceipt.get_active()
             model.add_letter(sNumber, sSubject, sSender, sRecipient,
                              dtSent, dtReceived, sComment, bReceipt)
-            print 'OK!'
-        elif response == gtk.RESPONSE_CANCEL:
-            print 'Cancel!'
         popup.hide()
 
 

@@ -14,7 +14,7 @@ class CellRendererDate(gtk.CellRendererText):
     def _create_calendar(self, treeview):
         self.calendar_window = gtk.Dialog(parent = treeview.get_toplevel())
         self.calendar_window.set_decorated(False)
-        self.calendar_window.action_area.hide()
+        #self.calendar_window.action_area.hide()
         self.calendar_window.set_property('skip-taskbar-hint', True)
 
         self.calendar = gtk.Calendar()
