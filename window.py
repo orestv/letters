@@ -47,6 +47,7 @@ class Window:
         for n in range(len(column_names)):
             cell = column_renderers[n]()
             self.columns[n] = gtk.TreeViewColumn(column_names[n], cell)
+            self.columns[n].set_sort_column_id(n)
 
             if column_renderers[n] == gtk.CellRendererText:
                 cell.set_property('editable', True)

@@ -52,7 +52,6 @@
               <widget class="GtkTreeView" id="tvLetters">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
-                <property name="reorderable">True</property>
                 <property name="enable_grid_lines">horizontal</property>
               </widget>
             </child>

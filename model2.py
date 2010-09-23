@@ -17,7 +17,7 @@ def format_date_down(t):
 
 def format_date_up(s):
     if not s:
-        return None
+        return ''
     return time.mktime(time.strptime(s, cr_date.DATE_FORMAT))
 
 def format_bool_up(b):

@@ -1,4 +1,5 @@
 import gtk;
+#coding: utf-8
 import time, datetime;
 
 DATE_FORMAT = '%d %b %Y'
@@ -13,7 +14,7 @@ class CellRendererDate(gtk.CellRendererText):
 
     def _create_calendar(self, treeview):
         self.calendar_window = gtk.Dialog(parent = treeview.get_toplevel())
-        self.calendar_window.set_decorated(False)
+        #self.calendar_window.set_decorated(False)
         #self.calendar_window.action_area.hide()
         self.calendar_window.set_property('skip-taskbar-hint', True)
 
@@ -23,10 +24,11 @@ class CellRendererDate(gtk.CellRendererText):
         self.calendar.connect('day-selected-double-click', self._day_selected,
                               None)
         self.calendar.connect('key-press-event', self._day_selected)
-        self.calendar.connect('focus-out-event', self._selection_cancelled)
+        #self.calendar_window.connect('focus-out-event', self._selection_cancelled)
 
         self.calendar_window.set_transient_for(None)
         self.calendar_window.vbox.pack_start(self.calendar)
+        self.calendar_window.add_button('Видалити', gtk.RESPONSE_DELETE_EVENT)
 
         self.calendar.show()
         self.calendar_window.realize()
@@ -60,6 +62,7 @@ class CellRendererDate(gtk.CellRendererText):
         self.calendar_window.move(x, y)
 
         response = self.calendar_window.run()
+        print response
 
         if response == gtk.RESPONSE_OK:
             (year, month, day) = self.calendar.get_date()
@@ -68,7 +71,9 @@ class CellRendererDate(gtk.CellRendererText):
             date = date.strftime(DATE_FORMAT)
             print 'Selected date:', date
             self.emit('edited', path, date)
-            self.calendar_window.hide()
+        elif response == gtk.RESPONSE_DELETE_EVENT:
+            self.emit('edited', path, None)
+        self.calendar_window.hide()
 
         return None
 
@@ -80,4 +85,5 @@ class CellRendererDate(gtk.CellRendererText):
 
     def _selection_cancelled(self, calendar, event):
         self.calendar_window.response(gtk.RESPONSE_CANCEL)
+        self.calendar_window.hide()
         return True
